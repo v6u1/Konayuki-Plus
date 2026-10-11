@@ -1,0 +1,9 @@
+# Build output
+bin/
+obj/
+*.log
+
+# Proprietary / large inputs kept locally, not in version control
+/original/
+/build/clean/
+/analysis/
