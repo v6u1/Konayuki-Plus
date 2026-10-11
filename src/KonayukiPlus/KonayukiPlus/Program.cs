@@ -55,6 +55,10 @@ internal static class Program
 	[STAThread]
 	private static void Main()
 	{
+		// ffmpeg and the UI emit/expect '.' decimals; parse and format invariantly so the app
+		// does not crash on locales such as tr-TR where ',' is the decimal separator.
+		System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+		System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 		if (Environment.Is64BitOperatingSystem)
 		{
 			Class14.smethod_0();

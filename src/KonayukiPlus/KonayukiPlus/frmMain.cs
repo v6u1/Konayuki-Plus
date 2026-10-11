@@ -2775,7 +2775,7 @@ public class frmMain : MetroForm
 				Match match8 = Regex.Match(e.Data.Replace(" ", ""), "speed=(.*?)x");
 				if (match2.Success)
 				{
-					class50.Duration = TimeSpan.Parse(match2.Groups[1].Value).TotalSeconds;
+					class50.Duration = (TimeSpan.TryParse(match2.Groups[1].Value, out TimeSpan _d2) ? _d2.TotalSeconds : class50.Duration);
 					Class12.smethod_2();
 				}
 				if (match3.Success)
@@ -2785,8 +2785,8 @@ public class frmMain : MetroForm
 						intPtr = Class48.FindWindow("SDL_app", "PREVIEW PLUS");
 					}
 					class50.Fps = match4.Groups[1].Value;
-					class50.Time = TimeSpan.Parse(match6.Groups[1].Value).TotalSeconds;
-					class50.Size = match5.Groups[1].Value;
+					class50.Time = (TimeSpan.TryParse(match6.Groups[1].Value, out TimeSpan _t6) ? _t6.TotalSeconds : class50.Time);
+					class50.Size = (long.TryParse(match5.Groups[1].Value, out long _kb) ? match5.Groups[1].Value : "0");
 					class50.Speed = match8.Groups[1].Value;
 					class50.Percent = class50.Time / class50.Duration * 100.0;
 					try
