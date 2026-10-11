@@ -6,4 +6,5 @@ obj/
 # Proprietary / large inputs kept locally, not in version control
 /original/
 /build/clean/
+/build/setup/
 /analysis/
