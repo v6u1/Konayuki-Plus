@@ -21,7 +21,9 @@ namespace KonayukiPlus;
 internal static class Server
 {
     /// <summary>Base host for all revived infrastructure. Change this one line to move servers.</summary>
-    public const string Host = "https://v6u1.lol/konayuki";
+    // cdn.v6u1.lol is nginx-static (CORS + cache, Cloudflare TLS), served from /srv/konayuki,
+    // isolated from the Next.js site on v6u1.lol.
+    public const string Host = "https://cdn.v6u1.lol/konayuki";
 
     /// <summary>Self-updater root. Serves <c>list.txt</c> and every file it references.</summary>
     public const string Sync = Host + "/sync/";
