@@ -70,46 +70,8 @@ public class frmSplash : Form
 
 	private void method_0()
 	{
-		Class10.smethod_3();
-		string[] fileSystemEntries = Directory.GetFileSystemEntries(Class10.smethod_7(), "*.*", SearchOption.TopDirectoryOnly);
-		foreach (string path in fileSystemEntries)
-		{
-			if (Path.GetExtension(path).ToLower().Contains(".zip"))
-			{
-				continue;
-			}
-			try
-			{
-				if (File.GetAttributes(path).HasFlag(FileAttributes.Archive))
-				{
-					File.Delete(path);
-				}
-			}
-			catch
-			{
-			}
-		}
-		do
-		{
-			string[] fileSystemEntries2 = Directory.GetFileSystemEntries(Class10.smethod_7(), "*.zip", SearchOption.TopDirectoryOnly);
-			foreach (string text in fileSystemEntries2)
-			{
-				try
-				{
-					if (Class10.smethod_5())
-					{
-						Class10.smethod_6(text);
-					}
-				}
-				catch
-				{
-				}
-			}
-			int_1++;
-			Thread.Sleep(5000);
-		}
-		while (Directory.GetFileSystemEntries(Class10.smethod_7(), "*.zip", SearchOption.TopDirectoryOnly).Length != 0 && int_1 <= 3);
-		thread_0.Abort();
+		// Telemetry removed in the revival. This background thread originally swept the hidden
+		// log-staging folder and uploaded any leftover archives via Class10.smethod_6.
 	}
 
 	private void method_1()

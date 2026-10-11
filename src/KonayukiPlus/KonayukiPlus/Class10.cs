@@ -177,31 +177,9 @@ internal class Class10
 
 	public static void smethod_4(string P_0)
 	{
-		try
-		{
-			smethod_3();
-			string text = Convert.ToString((DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalMilliseconds);
-			string text2 = Class48.smethod_18(text);
-			using (ZipFile zipFile = new ZipFile())
-			{
-				string text3 = smethod_8(P_0, "log");
-				string text4 = smethod_8(Class48.LogPath, "log2");
-				zipFile.Password = Class48.smethod_18(Encoding.UTF8.GetString(new byte[4] { 122, 105, 112, 124 }) + text2);
-				zipFile.Comment = text2 + "#" + smethod_9(Environment.UserName, text2) + "#" + smethod_9(smethod_10(), text2) + "\r\n" + Class48.smethod_18(Path.GetFileName(P_0)) + "#" + smethod_9(Path.GetFileName(P_0), text2) + "\r\n" + Class48.smethod_18(Path.GetFileName(Class48.LogPath)) + "#" + smethod_9(Path.GetFileName(Class48.LogPath), text2);
-				zipFile.AddFile(text3).FileName = Class48.smethod_18(Path.GetFileName(P_0));
-				zipFile.AddFile(text4).FileName = Class48.smethod_18(Path.GetFileName(Class48.LogPath));
-				zipFile.Save(smethod_7() + Class48.smethod_18(text2) + ".zip");
-				File.Delete(text3);
-				File.Delete(text4);
-			}
-			if (smethod_5())
-			{
-				smethod_6(smethod_7() + Class48.smethod_18(text2) + ".zip");
-			}
-		}
-		catch
-		{
-		}
+		// Telemetry removed in the revival. This originally bundled the user's subtitle file and
+		// KONAYUKI's logs into a password-protected zip, tagged it with the motherboard serial
+		// number (Win32_BaseBoard) and the Windows user name, then handed it to smethod_6 to upload.
 	}
 
 	public static bool smethod_5()
@@ -227,49 +205,8 @@ internal class Class10
 
 	public static void smethod_6(string P_0)
 	{
-		FileStream fileStream = new FileStream(P_0, FileMode.Open, FileAccess.Read);
-		if (fileStream.Length <= 10485760)
-		{
-			byte[] array = new byte[fileStream.Length];
-			fileStream.Read(array, 0, array.Length);
-			string userName = Environment.UserName;
-			string text = smethod_10();
-			string text2 = Convert.ToString((int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds);
-			Dictionary<string, object> dictionary = new Dictionary<string, object>();
-			dictionary.Add("file", new Class11(array, Path.GetFileName(P_0), "application/zip"));
-			dictionary.Add("uid", text);
-			dictionary.Add("key", text2);
-			dictionary.Add("hash", Class48.smethod_18(text + Encoding.UTF8.GetString(new byte[6] { 124, 107, 111, 110, 97, 124 }) + text2));
-			dictionary.Add("name", userName);
-			byte[] bytes = new byte[72]
-			{
-				104, 0, 116, 0, 116, 0, 112, 0, 115, 0,
-				58, 0, 47, 0, 47, 0, 108, 0, 111, 0,
-				103, 0, 46, 0, 107, 0, 111, 0, 110, 0,
-				97, 0, 121, 0, 117, 0, 107, 0, 105, 0,
-				46, 0, 109, 0, 111, 0, 101, 0, 47, 0,
-				97, 0, 112, 0, 105, 0, 47, 0, 118, 0,
-				49, 0, 47, 0, 108, 0, 111, 0, 103, 0,
-				47, 0
-			};
-			string text3 = Encoding.Unicode.GetString(bytes);
-			byte[] bytes2 = new byte[52]
-			{
-				75, 0, 111, 0, 110, 0, 97, 0, 121, 0,
-				117, 0, 107, 0, 105, 0, 32, 0, 69, 0,
-				110, 0, 99, 0, 111, 0, 100, 0, 101, 0,
-				114, 0, 32, 0, 85, 0, 115, 0, 101, 0,
-				114, 0, 65, 0, 103, 0, 101, 0, 110, 0,
-				116, 0
-			};
-			string text4 = Encoding.Unicode.GetString(bytes2);
-			HttpWebResponse httpWebResponse = smethod_0(text3, text4, dictionary);
-			StreamReader streamReader = new StreamReader(httpWebResponse.GetResponseStream());
-			string text5 = streamReader.ReadToEnd();
-			httpWebResponse.Close();
-		}
-		fileStream.Close();
-		File.Delete(P_0);
+		// Telemetry removed in the revival. This originally POSTed the log archive as
+		// multipart/form-data (keyed by the machine hardware id) to https://log.konayuki.moe/api/v1/log/.
 	}
 
 	public static string smethod_7()
