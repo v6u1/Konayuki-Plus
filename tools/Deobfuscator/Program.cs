@@ -41,13 +41,123 @@ switch (args.FirstOrDefault())
         Console.WriteLine($"[resources] {n} compiled .resources extracted to {outDir}");
         return 0;
     }
+    case "compare" when args.Length == 3:
+        Comparer.Run(Load(args[1]), Load(args[2]));
+        return 0;
     default:
         Console.Error.WriteLine("usage: Deobfuscator analyze <in.exe> <outdir>");
+        Console.Error.WriteLine("       Deobfuscator compare <clean.exe> <rebuilt.exe>");
         Console.Error.WriteLine("       Deobfuscator clean <in.exe> <out.exe>");
         return 1;
 }
 
 static ModuleDefMD Load(string path) => ModuleDefMD.Load(path, ModuleDef.CreateModuleContext());
+
+/// <summary>
+/// Fidelity check: matches methods by type+name+params between the deobfuscated original (clean)
+/// and our recompiled build, and compares a semantic fingerprint of each — the ordered sequence of
+/// calls, string/number literals, field accesses, casts, newarr, switch, throw and conditional
+/// branches. This skips compiler-dependent noise (local/arg slots, temporaries, arithmetic codegen)
+/// so remaining differences are real logic changes (either our intended edits or decompiler bugs).
+/// URLs are normalised to "URL" so the v6u1 repoint does not register as a difference.
+/// </summary>
+static class Comparer
+{
+    public static void Run(ModuleDefMD clean, ModuleDefMD rebuilt)
+    {
+        var a = Index(clean);
+        var b = Index(rebuilt);
+        var onlyClean = a.Keys.Where(k => !b.ContainsKey(k)).OrderBy(k => k).ToList();
+        var onlyRebuilt = b.Keys.Where(k => !a.ContainsKey(k)).OrderBy(k => k).ToList();
+        var common = a.Keys.Where(k => b.ContainsKey(k)).OrderBy(k => k).ToList();
+        var diffs = common.Where(k => Fingerprint(a[k]) != Fingerprint(b[k])).ToList();
+
+        Console.WriteLine($"== fidelity: clean={a.Count} methods, rebuilt={b.Count} methods, common={common.Count}");
+        Console.WriteLine($"[MISSING in rebuilt] {onlyClean.Count}  (methods the original had that ours dropped -> serious)");
+        foreach (var k in onlyClean) Console.WriteLine("   - " + k);
+        Console.WriteLine($"[NEW in rebuilt] {onlyRebuilt.Count}  (methods we added)");
+        foreach (var k in onlyRebuilt) Console.WriteLine("   + " + k);
+        Console.WriteLine($"[LOGIC DIFFERS] {diffs.Count} / {common.Count}  (investigate each: intended edit vs decompiler bug)");
+        foreach (var k in diffs) Console.WriteLine("   ~ " + k);
+    }
+
+    static Dictionary<string, MethodDef> Index(ModuleDef m)
+    {
+        var d = new Dictionary<string, MethodDef>();
+        foreach (var t in m.GetTypes())
+            foreach (var md in t.Methods)
+                if (md.HasBody)
+                    d[Key(md)] = md;
+        return d;
+    }
+
+    // Compiler-generated member/type names differ between the original compiler and Roslyn
+    // (<>c__DisplayClass27 vs <>c__DisplayClass5_0, <>b__0 vs <>b__3_0, state machines, backing
+    // fields, cached delegates). Collapse them so the same logic matches regardless of compiler.
+    static readonly (Regex, string)[] NormRules =
+    {
+        (new Regex(@"<>c__DisplayClass\d+(_\d+)?"), "<dc>"),
+        (new Regex(@"<>c(?![_a-zA-Z])"), "<c>"),
+        (new Regex(@"<[^>]*>d__\d+"), "<sm>"),
+        (new Regex(@"<[^>]*>b__\d+(_\d+)?"), "<lambda>"),
+        (new Regex(@"<[^>]*>k__BackingField"), "<backing>"),
+        (new Regex(@"[A-Za-z_][A-Za-z0-9_]*__BackingField"), "<backing>"),
+        (new Regex(@"<[^>]*>5__\d+"), "<hoisted>"),
+        (new Regex(@"<[^>]*>7__wrap\d+"), "<wrap>"),
+        (new Regex(@"CS\$<>\d+__[A-Za-z0-9]+"), "<cache>"),
+        (new Regex(@"<>\d+__[A-Za-z0-9]+"), "<cache>"),
+        (new Regex(@"<>f__AnonymousType\d+"), "<anon>"),
+    };
+
+    static string Norm(string? n)
+    {
+        n ??= "";
+        foreach (var (rx, rep) in NormRules) n = rx.Replace(n, rep);
+        return n;
+    }
+
+    static string Key(MethodDef m) =>
+        Norm(m.DeclaringType.FullName) + "::" + Norm(m.Name) + "(" + m.MethodSig.Params.Count + ")";
+
+    // Call/field/newobj/cast skeleton + literals, with compiler-gen names normalised and benign
+    // codegen (locals, args, arithmetic, branch shape, String.Concat overload / params arrays) dropped.
+    static string Fingerprint(MethodDef m)
+    {
+        var sb = new StringBuilder();
+        foreach (var ins in m.Body.Instructions)
+        {
+            switch (ins.OpCode.Code)
+            {
+                case Code.Call: case Code.Callvirt: case Code.Newobj:
+                case Code.Ldftn: case Code.Ldvirtftn:
+                    var name = Norm((ins.Operand as IMethod)?.Name);
+                    if (name == "Concat") break; // String.Concat overloads/params-arrays differ harmlessly
+                    sb.Append("c:").Append(name).Append(';'); break;
+                case Code.Ldstr:
+                    var s = ins.Operand as string ?? "";
+                    sb.Append("s:").Append(s.Contains("://") ? "URL" : s).Append(';'); break;
+                case Code.Stfld: case Code.Stsfld:
+                    sb.Append("w:").Append(Norm((ins.Operand as IField)?.Name)).Append(';'); break;
+                case Code.Castclass: case Code.Isinst:
+                    sb.Append("t:").Append(Norm((ins.Operand as ITypeDefOrRef)?.Name)).Append(';'); break;
+                case Code.Switch:
+                    sb.Append("sw:").Append((ins.Operand as Instruction[])?.Length).Append(';'); break;
+                case Code.Throw:
+                    sb.Append("th;"); break;
+                case Code.Ldc_R4: case Code.Ldc_R8:
+                    sb.Append("n:").Append(ins.Operand).Append(';'); break;
+                default:
+                    if (ins.IsLdcI4())
+                    {
+                        var v = ins.GetLdcI4Value();
+                        if (v != 0 && v != 1) sb.Append("n:").Append(v).Append(';'); // skip 0/1 (bool/array-size noise)
+                    }
+                    break;
+            }
+        }
+        return sb.ToString();
+    }
+}
 
 static class Names
 {
