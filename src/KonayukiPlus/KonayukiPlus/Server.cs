@@ -5,7 +5,7 @@ namespace KonayukiPlus;
 ///
 /// The original release hard-coded <c>*.konayuki.moe</c> hosts across the code base. The revival
 /// routes every functional endpoint through this one class, so moving to a different server is a
-/// single-line change to <see cref="Host"/>.
+/// single change to <see cref="Host"/> (set in <c>ServerConfig.local.cs</c>).
 ///
 /// All of these are plain static HTTP GETs:
 ///   <see cref="Sync"/>       serves <c>list.txt</c> (the "path|sha1|run|cmd" update manifest) and
@@ -20,10 +20,12 @@ namespace KonayukiPlus;
 /// </summary>
 internal static class Server
 {
-    /// <summary>Base host for all revived infrastructure. Change this one line to move servers.</summary>
-    // cdn.v6u1.lol is nginx-static (CORS + cache, Cloudflare TLS), served from /srv/konayuki,
-    // isolated from the Next.js site on v6u1.lol.
-    public const string Host = "https://cdn.v6u1.lol/konayuki";
+    /// <summary>
+    /// Base URL for all revived infrastructure. It comes from <c>ServerConfig.local.cs</c>, which is
+    /// git-ignored because the server only serves the app's files under a secret path prefix
+    /// (see <c>ServerConfig.example.cs</c>). Without that file the build uses a placeholder host.
+    /// </summary>
+    public const string Host = ServerConfig.Host;
 
     /// <summary>Self-updater root. Serves <c>list.txt</c> and every file it references.</summary>
     public const string Sync = Host + "/sync/";

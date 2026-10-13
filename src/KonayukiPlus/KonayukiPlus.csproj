@@ -71,4 +71,15 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net471" Version="1.0.3" PrivateAssets="all" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- The server base URL lives in the git-ignored ServerConfig.local.cs, because the production server only
+         serves the app's files under a secret path prefix. Without it the build falls back to the placeholder
+         in ServerConfig.example.cs, which compiles but cannot reach any server. -->
+    <Compile Remove="KonayukiPlus\ServerConfig.*.cs" />
+    <Compile Include="KonayukiPlus\ServerConfig.local.cs" Condition="Exists('KonayukiPlus\ServerConfig.local.cs')" />
+    <Compile Include="KonayukiPlus\ServerConfig.example.cs" Condition="!Exists('KonayukiPlus\ServerConfig.local.cs')" />
+  </ItemGroup>
+  <Target Name="WarnPlaceholderServer" BeforeTargets="CoreCompile" Condition="!Exists('KonayukiPlus\ServerConfig.local.cs')">
+    <Warning Text="KonayukiPlus\ServerConfig.local.cs not found: building with the placeholder host from ServerConfig.example.cs. The resulting app cannot reach a server." />
+  </Target>
 </Project>

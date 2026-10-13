@@ -12,6 +12,12 @@ $repo = (Resolve-Path "$PSScriptRoot\..\..").Path
 $stage = Join-Path $repo "build\setup"
 $payload = Join-Path $stage "payload"
 
+# Without the git-ignored server config the app is built against a placeholder host and could not
+# reach any server; never package such a build.
+if (-not (Test-Path "$repo\src\KonayukiPlus\KonayukiPlus\ServerConfig.local.cs")) {
+    throw "src\KonayukiPlus\KonayukiPlus\ServerConfig.local.cs is missing: copy ServerConfig.example.cs to it and set the real server URL"
+}
+
 & dotnet build "$repo\src\KonayukiPlus\KonayukiPlus.csproj" -c Release -v q -nologo
 if ($LASTEXITCODE -ne 0) { throw "dotnet build failed" }
 

@@ -3,8 +3,22 @@ bin/
 obj/
 *.log
 
+# Local server configuration: holds the production server's secret path prefix. Never commit it.
+ServerConfig.local.cs
+
 # Proprietary / large inputs kept locally, not in version control
 /original/
-/build/clean/
-/build/setup/
 /analysis/
+
+# Everything under build/ is generated locally, except the reference assemblies the project compiles against
+/build/*
+!/build/refs/
+
+# dotnet tool install output (see README: install ilspycmd with --tool-path tools)
+/tools/.store/
+/tools/ilspycmd.exe
+
+# IDE / OS
+.vs/
+*.user
+Thumbs.db
