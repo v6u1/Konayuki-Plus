@@ -1,0 +1,8 @@
+# SHA-256 of the installer payload that is not built from this repository.
+# The release workflow downloads these files from <server>/installer/ and refuses to
+# package anything that does not match. Paths are relative to the payload folder.
+2168ee287a18023f50c5c42542d89309116a6fe4db59bad64cac6a230adf1e0d *KonayukiPlusLib.dll
+b9821f28facfd6b11ffbf3703ff3f218cc3c31b85d6503d5c20570751ff08876 *redists/Net_Framework.exe
+681be3e5ba9fd3da02c09d7e565adfa078640ed66a0d58583efad2c1e3cc4064 *redists/vcredist_x64_2012.exe
+e554425243e3e8ca1cd5fe550db41e6fa58a007c74fad400274b128452f38fb8 *redists/vcredist_x64_2013.exe
+b1a32c71a6b7d5978904fb223763263ea5a7eb23b2c44a0d60e90d234ad99178 *redists/vcredist_x64_2015-19.exe

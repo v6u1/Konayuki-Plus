@@ -1,0 +1,29 @@
+name: Build
+
+# Compile check for every push and pull request. Uses the placeholder server from
+# ServerConfig.example.cs, so it needs no secrets (and works for pull requests from forks).
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build the app
+        run: dotnet build src/KonayukiPlus/KonayukiPlus.csproj -c Release -nologo
+
+      - name: Build the recovery tools
+        run: |
+          dotnet build tools/Deobfuscator/Deobfuscator.csproj -c Release -nologo
+          dotnet build tools/SourceFixer/SourceFixer.csproj -c Release -nologo
