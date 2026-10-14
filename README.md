@@ -9,6 +9,33 @@ bundled 2021 FFmpeg could no longer encode at all, which left existing users stu
 This repository brings it back: the C# source recovered from the last public release, the fixes needed to run
 it today, a replacement backend, and an installer.
 
+## Download and install
+
+**[Download KONAYUKI_PLUS_V6U1_SETUP.exe](https://github.com/v6u1/KonayukiPlus/releases/latest/download/KONAYUKI_PLUS_V6U1_SETUP.exe)**
+for Windows 10 or 11, 64-bit ([all releases](https://github.com/v6u1/KonayukiPlus/releases)).
+
+1. Run the installer. It installs KONAYUKI PLUS, the .NET Framework and Visual C++ runtimes it needs, and Start
+   menu and desktop shortcuts. Installing over an existing KONAYUKI PLUS keeps its settings.
+2. Start KONAYUKI PLUS. The first start downloads the encoding tools (FFmpeg, AviSynth+ and its filters, mpv,
+   codecs; about 300 MB), so keep it open until the main window appears. Fonts that your subtitles use are
+   downloaded automatically the first time they are needed.
+
+Everything after that is automatic: on every start the app checks for new versions of itself and of its tools
+and installs them, and when the app itself was updated, "What's New" opens. You never need to download it again.
+
+Windows SmartScreen may warn about the installer because it is not code-signed. Choose **More info → Run anyway**.
+
+**Troubleshooting**
+
+- *"Connecting... Can't connect to server?"* on the start screen: check the internet connection and any
+  firewall. The original Konayuki.moe release and earlier v6u1 builds can no longer connect; install the latest
+  release over them.
+- *"File Corruption"*: a download was interrupted or changed on the way (antivirus software sometimes does this).
+  Start the app again and it downloads the file again. If an antivirus keeps quarantining files in the
+  installation folder, restore them and allow that folder.
+- The update log is `%ProgramData%\Konayuki Container\tmp\synclog.log`. Attach it when you
+  [report a problem](https://github.com/v6u1/KonayukiPlus/issues/new/choose).
+
 > **Disclaimer.** This project is not affiliated with Konayuki.moe. KONAYUKI PLUS, its code and its assets
 > belong to their original authors. The source here was recovered by decompiling the last public binary so the
 > program stays usable for the people who depend on it; no license is granted for the original code or assets.
@@ -16,9 +43,11 @@ it today, a replacement backend, and an installer.
 
 ## Contents
 
+- [Download and install](#download-and-install)
 - [What was done](#what-was-done)
 - [How the client talks to the server](#how-the-client-talks-to-the-server)
 - [Building](#building)
+- [Releasing](#releasing)
 - [Re-running the recovery pipeline](#re-running-the-recovery-pipeline)
 - [Repository layout](#repository-layout)
 - [Third-party components](#third-party-components)
@@ -100,7 +129,8 @@ and backed up before each write), edit the update manifest, upload or delete upd
 against its SHA-1, add, upload or remove fonts, check the health of every public URL (including that locked paths
 really return 404), restore backups, and review an audit log of all changes. It also edits the changelog: the
 page it generates is a pixel-identical reproduction of the original konayuki.moe timeline, and the full original
-history (32 entries, 2018–2021) has been imported. The dashboard can also announce an update (see below).
+history (32 entries, 2018–2021) has been imported. The dashboard can also announce an update (see below), and
+it publishes new GitHub releases to users automatically (see [Releasing](#releasing)).
 
 ### 5. Installer
 
@@ -169,8 +199,32 @@ machine (the script takes `KonayukiPlusLib.dll` and the prerequisite runtimes fr
 powershell -ExecutionPolicy Bypass -File tools\installer\build-setup.ps1
 ```
 
-The script rebuilds the executable, refuses to package it without `ServerConfig.local.cs`, and writes
-`build\setup\KONAYUKI_PLUS_V6U1_SETUP.exe`.
+The script rebuilds the executable, refuses to package it without `ServerConfig.local.cs`, checks every payload
+file against [`tools/installer/payload.sha256`](tools/installer/payload.sha256), and writes
+`build\setup\KONAYUKI_PLUS_V6U1_SETUP.exe`. With `-PayloadDir <folder>` it takes the payload from that folder
+instead of an installation (`fetch-payload.ps1` downloads it from the server; the release workflow does both).
+
+## Releasing
+
+Releases are built and published automatically:
+
+1. Push a version tag (`git tag v2026.10.14`, then `git push origin v2026.10.14`), or open
+   **Actions → Release → Run workflow**. There the version defaults to today's date, and *pre-release* makes a
+   test build that is not handed to users.
+2. The [Release workflow](.github/workflows/release.yml) builds the app with the server URL from the
+   `KONAYUKI_HOST` repository secret, downloads the installer payload from the server and checks it against
+   `payload.sha256`, builds the installer with NSIS, and publishes a GitHub release with the installer, the bare
+   `KonayukiPlus.exe` and `SHA256SUMS.txt`.
+3. The server checks GitHub every five minutes. When a new release (not a pre-release) appears, it downloads the
+   files, verifies them against `SHA256SUMS.txt`, makes sure the executable was built for that server, and puts
+   it in the update manifest. Installed copies update themselves on their next start.
+
+The maintainer dashboard can do the same by hand: publish the newest release at once, publish an older one to
+roll back, or turn automatic publishing off.
+
+To set this up for another server, create the `KONAYUKI_HOST` secret (Settings → Secrets and variables →
+Actions) with the same base URL as `ServerConfig.local.cs`, and serve the files listed in `payload.sha256` under
+`<base URL>/installer/`.
 
 ## Re-running the recovery pipeline
 
@@ -204,7 +258,9 @@ src/KonayukiPlus/               recovered C# project (net471, x64, WinForms)
 build/refs/                     dependency assemblies the project compiles against
 tools/Deobfuscator/             dnlib deobfuscator, resource extractor and fidelity comparer
 tools/SourceFixer/              Roslyn fixer for decompiler artifacts
-tools/installer/                NSIS installer script and its build script
+tools/installer/                NSIS installer script, its build script and the payload checksums
+.github/workflows/              build check on every push; release builds
+.github/ISSUE_TEMPLATE/         bug report form
 ```
 
 Files that differ from the plain decompile: `Server.cs` and `ServerConfig.example.cs` (endpoints),

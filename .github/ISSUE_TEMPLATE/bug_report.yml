@@ -1,0 +1,40 @@
+name: Bug report
+description: Something does not work (installing, updating, encoding, ...)
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting! Fill in what you can; logs help the most.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead? Screenshots are welcome.
+    validations:
+      required: true
+  - type: input
+    id: release
+    attributes:
+      label: Release
+      description: The release you installed, or the "API V." text on the start screen.
+      placeholder: v2026.10.14
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 24H2, 64-bit
+    validations:
+      required: true
+  - type: input
+    id: gpu
+    attributes:
+      label: GPU (for NVENC / AMF encoding problems)
+      placeholder: NVIDIA RTX 4060, driver 576.88
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        For start-up and update problems, paste `%ProgramData%\Konayuki Container\tmp\synclog.log`.
+        For encoding problems, paste the FFmpeg output shown in the app.
+      render: text
