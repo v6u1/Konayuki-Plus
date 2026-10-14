@@ -213,11 +213,12 @@ Releases are built and published automatically:
    test build that is not handed to users.
 2. The [Release workflow](.github/workflows/release.yml) builds the app with the server URL from the
    `KONAYUKI_HOST` repository secret, downloads the installer payload from the server and checks it against
-   `payload.sha256`, builds the installer with NSIS, and publishes a GitHub release with the installer, the bare
-   `KonayukiPlus.exe` and `SHA256SUMS.txt`.
+   `payload.sha256`, builds the installer with NSIS, and publishes a GitHub release whose only file is the
+   installer.
 3. The server checks GitHub every five minutes. When a new release (not a pre-release) appears, it downloads the
-   files, verifies them against `SHA256SUMS.txt`, makes sure the executable was built for that server, and puts
-   it in the update manifest. Installed copies update themselves on their next start.
+   installer, checks it against the SHA-256 that GitHub records for every release file, takes `KonayukiPlus.exe`
+   out of it with 7-Zip, makes sure that executable was built for this server, and puts it in the update
+   manifest. Installed copies update themselves on their next start.
 
 The maintainer dashboard can do the same by hand: publish the newest release at once, publish an older one to
 roll back, or turn automatic publishing off.

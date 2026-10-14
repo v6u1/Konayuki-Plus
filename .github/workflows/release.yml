@@ -1,14 +1,14 @@
 name: Release
 
-# Builds KonayukiPlus.exe and the installer and publishes them as a GitHub release.
+# Builds the installer and publishes it as a GitHub release (the installer is the release's only file).
 #
 #   - push a tag:      git tag v2026.10.14 && git push origin v2026.10.14
 #   - or run it here:  Actions > Release > Run workflow (version defaults to today's date)
 #
 # The server base URL comes from the KONAYUKI_HOST repository secret (it is kept out of the source;
-# see ServerConfig.example.cs). The maintainer's server polls the latest release, verifies it against
-# SHA256SUMS.txt and publishes it to the update manifest, so installed copies update themselves.
-# Pre-releases are not picked up by the server.
+# see ServerConfig.example.cs). The maintainer's server polls the latest release, checks the installer
+# against the SHA-256 GitHub records for it, takes KonayukiPlus.exe out of it and publishes that to the
+# update manifest, so installed copies update themselves. Pre-releases are not picked up by the server.
 on:
   push:
     tags: ['v*']
@@ -96,16 +96,15 @@ jobs:
         shell: pwsh
         run: ./tools/installer/build-setup.ps1 -PayloadDir "$PWD\build\payload"
 
-      - name: Collect the release files
+      - name: Collect the installer
+        id: files
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
-          Copy-Item build/setup/KONAYUKI_PLUS_V6U1_SETUP.exe, src/KonayukiPlus/bin/Release/KonayukiPlus.exe dist/
-          $sums = Get-ChildItem dist -File | Sort-Object Name | ForEach-Object {
-            '{0}  {1}' -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name
-          }
-          Set-Content dist/SHA256SUMS.txt $sums -Encoding ascii
-          Get-Content dist/SHA256SUMS.txt
+          Copy-Item build/setup/KONAYUKI_PLUS_V6U1_SETUP.exe dist/
+          $sha = (Get-FileHash dist/KONAYUKI_PLUS_V6U1_SETUP.exe -Algorithm SHA256).Hash.ToLower()
+          "sha256=$sha" >> $env:GITHUB_OUTPUT
+          "KONAYUKI_PLUS_V6U1_SETUP.exe  $sha"
 
       - name: Publish the release
         shell: pwsh
@@ -114,6 +113,7 @@ jobs:
           EVENT: ${{ github.event_name }}
           TAG: ${{ steps.tag.outputs.tag }}
           PRERELEASE: ${{ inputs.prerelease }}
+          SETUP_SHA256: ${{ steps.files.outputs.sha256 }}
         run: |
           $setupUrl = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$env:TAG/KONAYUKI_PLUS_V6U1_SETUP.exe"
           @(
@@ -126,9 +126,11 @@ jobs:
             '',
             'Windows SmartScreen may warn about the installer because it is not code-signed. Choose **More info > Run anyway**.',
             '',
-            "What's new: https://cdn.v6u1.lol/konayuki/plus_changelog.html"
+            "What's new: https://cdn.v6u1.lol/konayuki/plus_changelog.html",
+            '',
+            "SHA-256 of the installer: ``$env:SETUP_SHA256``"
           ) | Set-Content notes.md -Encoding utf8
-          $ghArgs = @($env:TAG, 'dist/KONAYUKI_PLUS_V6U1_SETUP.exe', 'dist/KonayukiPlus.exe', 'dist/SHA256SUMS.txt',
+          $ghArgs = @($env:TAG, 'dist/KONAYUKI_PLUS_V6U1_SETUP.exe',
                       '--title', "KONAYUKI PLUS $env:TAG", '--notes-file', 'notes.md', '--generate-notes')
           if ($env:EVENT -ne 'push') { $ghArgs += @('--target', $env:GITHUB_SHA) }
           if ($env:PRERELEASE -eq 'true') { $ghArgs += '--prerelease' } else { $ghArgs += '--latest' }
