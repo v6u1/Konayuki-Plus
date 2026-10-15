@@ -4842,6 +4842,18 @@ public class frmMain : MetroForm
 			cboAudioQuality.Enabled = true;
 			cboAudioSampleRates.Enabled = true;
 		}
+		else if (cboAudioFormat.SelectedIndex == 2)
+		{
+			// Opus (added by the revival): about the quality of AAC at two thirds of the bitrate, saved as MKV.
+			// It always works at 48 kHz, so the sample rate stays "Original" and ffmpeg converts it.
+			ComboBox.ObjectCollection items4 = cboAudioQuality.Items;
+			object[] items2 = new string[4] { "96 Kbps", "128 Kbps Default", "160 Kbps", "192 Kbps" };
+			items4.AddRange(items2);
+			cboAudioQuality.Text = "128 Kbps Default";
+			cboAudioSampleRates.Text = "Original";
+			cboAudioQuality.Enabled = true;
+			cboAudioSampleRates.Enabled = false;
+		}
 		else
 		{
 			ComboBox.ObjectCollection items3 = cboAudioQuality.Items;
@@ -8398,7 +8410,7 @@ public class frmMain : MetroForm
 		this.cboAudioFormat.FontSize = MetroFramework.MetroComboBoxSize.Small;
 		this.cboAudioFormat.FormattingEnabled = true;
 		this.cboAudioFormat.ItemHeight = 19;
-		this.cboAudioFormat.Items.AddRange(new object[2] { "AAC (Advanced Audio Coding)", "FLAC (Free Lossless Audio Codec)" });
+		this.cboAudioFormat.Items.AddRange(new object[3] { "AAC (Advanced Audio Coding)", "FLAC (Free Lossless Audio Codec)", "Opus (Interactive Audio Codec)" });
 		this.cboAudioFormat.Location = new System.Drawing.Point(56, 19);
 		this.cboAudioFormat.Name = "cboAudioFormat";
 		this.cboAudioFormat.Size = new System.Drawing.Size(542, 25);

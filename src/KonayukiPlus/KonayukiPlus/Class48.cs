@@ -580,6 +580,13 @@ public static class Class48
 		{
 			return "-c:a aac -aac_coder:a 1 -b:a " + array[P_1];
 		}
+		if (P_0 == 2)
+		{
+			// Opus: libopus only takes the Vorbis channel orders, so 5.1(side) from AC3/DTS sources is
+			// remapped to 5.1 first (otherwise the encoder fails to open); 44.1 kHz is resampled to 48 kHz.
+			string[] array2 = new string[4] { "96k", "128k", "160k", "192k" };
+			return "-af \"aformat=channel_layouts=mono|stereo|3.0|quad|5.0|5.1|6.1|7.1\" -c:a libopus -b:a " + array2[Math.Max(0, Math.Min(3, P_1))];
+		}
 		return "-c:a flac -compression_level:a 8";
 	}
 
