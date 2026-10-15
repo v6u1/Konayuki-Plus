@@ -496,12 +496,17 @@ public static class Class48
 		return (P_0.BackColor.ToArgb() & 0xFFFFFF).ToString("X6");
 	}
 
+	// Encoder tables, indexed by the position in the encoder list (cboVideoEncoder). Indices 0-10 are the
+	// original encoders; 11 and 12 were added by the revival. Index 11 is also listed as a 10-bit encoder in
+	// the AviSynth template on the server, and 12 was added there, so both get 10-bit input.
+	//   11  Software Encoder - AV1 10-bit (SVT-AV1)
+	//   12  Nvidia Encoder - AV1 10-bit (NVENC, RTX 40 series and newer)
 	public static string smethod_27(int P_0)
 	{
-		string[] array = new string[11]
+		string[] array = new string[13]
 		{
 			"-c:v libx264 -x264-params keyint=240:min-keyint=1", "-c:v libx265 -x265-params keyint=240:min-keyint=1", "-c:v libx265 -x265-params keyint=240:min-keyint=1", "-c:v h264_qsv", "-c:v hevc_qsv", "-c:v hevc_qsv", "-c:v h264_nvenc -rc constqp", "-c:v hevc_nvenc -rc constqp", "-c:v hevc_nvenc -rc constqp", "-c:v h264_amf -rc cqp",
-			"-c:v hevc_amf -rc cqp"
+			"-c:v hevc_amf -rc cqp", "-c:v libsvtav1 -g 240", "-c:v av1_nvenc -rc constqp -tune hq -g 240"
 		};
 		return array[P_0];
 	}
@@ -511,6 +516,10 @@ public static class Class48
 		string[] array = new string[7] { "-preset veryslow", "-preset slower", "-preset slow", "-preset medium", "-preset fast", "-preset faster", "-preset veryfast" };
 		string[] array2 = new string[3] { "-preset slow", "-preset medium", "-preset fast" };
 		string[] array3 = new string[3] { "-quality quality", "-quality balanced", "-quality speed" };
+		// SVT-AV1 presets for the seven software preset names (Very Slow ... Very Fast)
+		string[] array4 = new string[7] { "-preset 3", "-preset 4", "-preset 5", "-preset 6", "-preset 8", "-preset 10", "-preset 12" };
+		// NVENC AV1 presets for Slow / Medium / Fast
+		string[] array5 = new string[3] { "-preset p7", "-preset p5", "-preset p3" };
 		if (P_0 == 6 || P_0 == 7 || P_0 == 8)
 		{
 			return array2[P_1];
@@ -519,22 +528,33 @@ public static class Class48
 		{
 			return array3[P_1];
 		}
+		if (P_0 == 11)
+		{
+			return array4[P_1];
+		}
+		if (P_0 == 12)
+		{
+			return array5[P_1];
+		}
 		return array[P_1];
 	}
 
 	public static string smethod_29(int P_0)
 	{
-		string[] array = new string[11]
+		string[] array = new string[13]
 		{
 			"-profile:v high -tune film", "-profile:v main", "-profile:v main10", "-profile:v high -look_ahead 0", "-profile:v main -load_plugins 6fadc791a0c2eb479ab6dcd5ea9da347", "-profile:v main10 -load_plugins 6fadc791a0c2eb479ab6dcd5ea9da347", "-profile:v high", "-profile:v main", "-profile:v main10", "-profile:v high",
-			"-profile:v main"
+			"-profile:v main", "", ""
 		};
 		return array[P_0];
 	}
 
+	// The quality slider (10-28) keeps the HEVC scale for every encoder, so the recommendations shown next to it
+	// stay valid. The AV1 encoders use other scales; these mappings were measured to give the same SSIM as HEVC
+	// at the same slider value (NVENC AV1: QP 0-255, SVT-AV1: CRF 0-63).
 	public static string smethod_30(int P_0, int P_1)
 	{
-		string[] array = new string[11]
+		string[] array = new string[13]
 		{
 			$"-crf {P_1}",
 			$"-crf {P_1}",
@@ -546,7 +566,9 @@ public static class Class48
 			$"-qp {P_1}",
 			$"-qp {P_1}",
 			$"-qp_i {P_1} -qp_p {P_1} -qp_b {P_1}",
-			$"-qp_i {P_1} -qp_p {P_1}"
+			$"-qp_i {P_1} -qp_p {P_1}",
+			$"-crf {Math.Max(1, Math.Min(63, (int)Math.Round(1.75 * P_1 - 10.0)))}",
+			$"-qp {Math.Max(1, Math.Min(255, 5 * P_1 - 30))}"
 		};
 		return array[P_0];
 	}

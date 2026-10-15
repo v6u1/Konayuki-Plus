@@ -3800,7 +3800,7 @@ public class frmMain : MetroForm
 	private void cboVideoEncoder_SelectedIndexChanged(object P_0, EventArgs P_1)
 	{
 		cboVideoPreset.Items.Clear();
-		if (cboVideoEncoder.SelectedIndex == 6 || cboVideoEncoder.SelectedIndex == 7 || cboVideoEncoder.SelectedIndex == 8)
+		if (cboVideoEncoder.SelectedIndex == 6 || cboVideoEncoder.SelectedIndex == 7 || cboVideoEncoder.SelectedIndex == 8 || cboVideoEncoder.SelectedIndex == 12)
 		{
 			ComboBox.ObjectCollection items = cboVideoPreset.Items;
 			object[] items2 = new string[3] { "Slow", "Medium", "Fast" };
@@ -8110,10 +8110,10 @@ public class frmMain : MetroForm
 		this.cboVideoEncoder.FontSize = MetroFramework.MetroComboBoxSize.Small;
 		this.cboVideoEncoder.FormattingEnabled = true;
 		this.cboVideoEncoder.ItemHeight = 19;
-		this.cboVideoEncoder.Items.AddRange(new object[11]
+		this.cboVideoEncoder.Items.AddRange(new object[13]
 		{
 			"Software Encoder - H.264", "Software Encoder - HEVC 8-bit", "Software Encoder - HEVC 10-bit", "Intel Encoder - H.264", "Intel Encoder - HEVC 8-bit", "Intel Encoder - HEVC 10-bit", "Nvidia Encoder - H.264", "Nvidia Encoder - HEVC 8-bit", "Nvidia Encoder - HEVC 10-bit", "AMD Encoder - H.264",
-			"AMD Encoder - HEVC 8-bit"
+			"AMD Encoder - HEVC 8-bit", "Software Encoder - AV1 10-bit", "Nvidia Encoder - AV1 10-bit"
 		});
 		this.cboVideoEncoder.Location = new System.Drawing.Point(60, 19);
 		this.cboVideoEncoder.Name = "cboVideoEncoder";
