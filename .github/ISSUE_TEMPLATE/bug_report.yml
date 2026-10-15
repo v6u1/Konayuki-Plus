@@ -35,6 +35,7 @@ body:
     attributes:
       label: Logs
       description: |
-        For start-up and update problems, paste `%ProgramData%\Konayuki Container\tmp\synclog.log`.
+        For start-up, update and Repair problems, paste `%ProgramData%\Konayuki Container\tmp\synclog.log`.
+        If the app showed "Something went wrong", paste `%ProgramData%\Konayuki Container\tmp\crash.log`.
         For encoding problems, paste the FFmpeg output shown in the app.
       render: text

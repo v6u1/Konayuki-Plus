@@ -35,7 +35,8 @@ Windows SmartScreen may warn about the installer because it is not code-signed. 
 - *"File Corruption"*: a download was interrupted or changed on the way (antivirus software sometimes does this).
   Start the app again and it downloads the file again. If an antivirus keeps quarantining files in the
   installation folder, restore them and allow that folder.
-- The update log is `%ProgramData%\Konayuki Container\tmp\synclog.log`. Attach it when you
+- The update log is `%ProgramData%\Konayuki Container\tmp\synclog.log`, and unexpected errors are
+  written to `crash.log` in the same folder. Attach them when you
   [report a problem](https://github.com/v6u1/KonayukiPlus/issues/new/choose).
 
 > **Disclaimer.** This project is not affiliated with Konayuki.moe. KONAYUKI PLUS, its code and its assets
