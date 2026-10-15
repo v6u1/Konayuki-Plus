@@ -1,4 +1,6 @@
-# KONAYUKI PLUS — revival
+# KONAYUKI PLUS — download, fix and source (Konayuki.moe anime encoder, revived)
+
+**KONAYUKI PLUS is working again.** If you are searching for *Konayuki Plus download*, *konayuki.moe not working*, *"Connecting... Can't connect to server?"*, *Konayuki Plus RTX 50 / NVENC error* or *Konayuki Plus alternative*: this is the maintained build with a working installer and automatic updates. **[Download the latest installer](https://github.com/v6u1/KonayukiPlus/releases/latest/download/KONAYUKI_PLUS_V6U1_SETUP.exe)**.
 
 KONAYUKI PLUS is a Windows anime encoder for fansubbers by [Konayuki.moe](https://konayuki.moe): a queue-based
 front end for AviSynth+, FFmpeg and hardware encoders (NVENC/AMF) with hardsubbing, filters, a preview player
