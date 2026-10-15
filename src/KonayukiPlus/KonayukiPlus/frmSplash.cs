@@ -351,7 +351,9 @@ public class frmSplash : Form
 								{
 									if (File.Exists(Path.Combine(Class48.smethod_37(), string_0)))
 									{
-										Process.Start(Path.Combine(Application.StartupPath, string_0), "/log");
+										// Pass our process id: the new instance waits for this one to exit. Otherwise it could
+										// find this instance still running, hand "/log" to it and quit, leaving no app open.
+										Process.Start(Path.Combine(Application.StartupPath, string_0), "/log " + Process.GetCurrentProcess().Id);
 										Application.Exit();
 									}
 									else

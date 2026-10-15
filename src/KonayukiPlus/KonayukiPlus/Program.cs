@@ -71,10 +71,11 @@ internal static class Program
 		Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
 		Application.ThreadException += (object sender, System.Threading.ThreadExceptionEventArgs e) => CrashLog.Report(e.Exception, fatal: false);
 		AppDomain.CurrentDomain.UnhandledException += (object sender, System.UnhandledExceptionEventArgs e) => CrashLog.Report(e.ExceptionObject as Exception, fatal: true);
-		// "/repair <pid>": started by Repair in the menu. Wait for the instance that started us to close first,
-		// otherwise the single-instance check would hand our arguments to it and exit.
+		// "/repair <pid>" (Repair in the menu) and "/log <pid>" (restart after a self-update): wait for the
+		// instance that started us to close first, otherwise the single-instance check would hand our
+		// arguments to it and exit, and no app would be left open.
 		string[] commandLineArgs = Environment.GetCommandLineArgs();
-		if (commandLineArgs.Length > 2 && commandLineArgs[1].Equals("/repair") && int.TryParse(commandLineArgs[2], out int previousPid))
+		if (commandLineArgs.Length > 2 && (commandLineArgs[1].Equals("/repair") || commandLineArgs[1].Equals("/log")) && int.TryParse(commandLineArgs[2], out int previousPid))
 		{
 			try
 			{

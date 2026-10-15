@@ -33,8 +33,11 @@ if (-not $SkipBuild) {
 
 $exe = "$repo\src\KonayukiPlus\bin\Release\KonayukiPlus.exe"
 # The app's self-updater can overwrite the exe it runs from with the server copy;
-# refuse to package anything that is not the v6u1 build.
-if (-not ([Text.Encoding]::Unicode.GetString([IO.File]::ReadAllBytes($exe)) -match 'cdn\.v6u1\.lol')) {
+# refuse to package anything that is not the v6u1 build. String literals in a .NET assembly are UTF-16 but
+# can start at an odd byte offset, so decode from both offsets before searching.
+$bytes = [IO.File]::ReadAllBytes($exe)
+$text = [Text.Encoding]::Unicode.GetString($bytes) + [Text.Encoding]::Unicode.GetString($bytes, 1, $bytes.Length - 1)
+if ($text -notmatch 'cdn\.v6u1\.lol') {
     throw "$exe is not the v6u1 build (was it replaced by the self-updater? rebuild it)"
 }
 
