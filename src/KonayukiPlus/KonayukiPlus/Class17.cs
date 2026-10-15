@@ -129,7 +129,7 @@ internal class Class17
 		Class4 class4 = new Class4();
 		try
 		{
-			class4 = JsonConvert.DeserializeObject<Class4>(File.ReadAllText(Class48.smethod_37() + "\\configs.json"));
+			class4 = Class48.LoadConfig();
 		}
 		catch
 		{
@@ -165,7 +165,7 @@ internal class Class17
 						AfterCompletion = class4.AfterCompletion,
 						Lang = stringValue
 					};
-					File.WriteAllText(Class48.smethod_37() + "\\configs.json", JsonConvert.SerializeObject(value, Formatting.Indented));
+					Class48.SaveConfig(value);
 					for (int i = 0; i < P_0.DropDownItems.Count; i++)
 					{
 						if (P_0.DropDownItems[i].Text == stringValue + " [" + class5.AuthorName + "]")
@@ -203,7 +203,7 @@ internal class Class17
 						AfterCompletion = class4.AfterCompletion,
 						Lang = stringValue
 					};
-					File.WriteAllText(Class48.smethod_37() + "\\configs.json", JsonConvert.SerializeObject(value, Formatting.Indented));
+					Class48.SaveConfig(value);
 					for (int i = 0; i < P_1.DropDownItems.Count; i++)
 					{
 						if (P_0.DropDownItems[i].Text == stringValue + " [" + class5.AuthorName + "]")

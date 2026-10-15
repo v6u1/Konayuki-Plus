@@ -2071,10 +2071,12 @@ public class frmMain : MetroForm
 				if (e.Data != null)
 				{
 					stringValue2 = e.Data;
+					// ffmpeg prints "Duration: N/A" for inputs of unknown length; TimeSpan.Parse threw on it, and
+					// on this event thread that closed the whole app. Skip values that do not parse.
 					Match match = Regex.Match(e.Data.Replace(" ", ""), "Duration:(.*?),");
-					if (match.Success)
+					if (match.Success && TimeSpan.TryParse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture, out TimeSpan duration))
 					{
-						class50.Duration = TimeSpan.Parse(match.Groups[1].Value).TotalSeconds;
+						class50.Duration = duration.TotalSeconds;
 						Class12.smethod_2();
 					}
 				}
@@ -2366,7 +2368,7 @@ public class frmMain : MetroForm
 	{
 		try
 		{
-			class4_0 = JsonConvert.DeserializeObject<Class4>(File.ReadAllText(Class48.smethod_37() + "\\configs.json"));
+			class4_0 = Class48.LoadConfig();
 		}
 		catch
 		{
@@ -3385,10 +3387,14 @@ public class frmMain : MetroForm
 						}
 						if (Class5.FPSNum == "0" || Class5.FPSDen == "0" || cboVideoSmooth.SelectedIndex > 0)
 						{
-							tbSeek.Maximum = (int)((double)int_2 - double.Parse(class6_0.method_11()));
-							double num = (double)int_3 / double.Parse(class6_0.method_11());
-							double currentPosition = Math.Floor(num * 1000.0) / 1000.0;
-							class6_0.CurrentPosition = currentPosition;
+							double previewFps = PreviewFps();
+							if (previewFps > 0.0)
+							{
+								tbSeek.Maximum = (int)((double)int_2 - previewFps);
+								double num = (double)int_3 / previewFps;
+								double currentPosition = Math.Floor(num * 1000.0) / 1000.0;
+								class6_0.CurrentPosition = currentPosition;
+							}
 						}
 						else
 						{
@@ -3525,7 +3531,7 @@ public class frmMain : MetroForm
 			AfterCompletion = class4_0.AfterCompletion,
 			Lang = lang
 		};
-		File.WriteAllText(Class48.smethod_37() + "\\configs.json", JsonConvert.SerializeObject(value, Formatting.Indented));
+		Class48.SaveConfig(value);
 	}
 
 	private void togClipDetails_CheckedChanged(object P_0, EventArgs P_1)
@@ -5077,15 +5083,17 @@ public class frmMain : MetroForm
 		txtOutput.Enabled = !togSameInput.Checked;
 	}
 
+	// Repair re-downloads every file. The original ran it inside this process with the main window only
+	// hidden, so the DLLs this process had loaded (mpv, MediaInfo) could not be replaced, and connections left
+	// over from start-up could make the first request fail with "Can't connect to server?". Start a fresh
+	// instance in repair mode instead; it waits for this one to exit (see Program.Main).
 	private void tsmiRepair_Click(object P_0, EventArgs P_1)
 	{
 		File.Delete(Path.Combine(Class48.smethod_37(), "recent.json"));
 		File.Delete(Path.Combine(Class48.smethod_37(), "configs.json"));
 		method_3(false);
-		frmSplash.bool_3 = true;
-		frmSplash frmSplash2 = new frmSplash();
-		frmSplash2.Show();
-		Hide();
+		Process.Start(Path.Combine(Application.StartupPath, "KonayukiPlus.exe"), "/repair " + Process.GetCurrentProcess().Id);
+		Environment.Exit(0);
 	}
 
 	private void tsmiChangelog_Click(object P_0, EventArgs P_1)
@@ -5145,7 +5153,7 @@ public class frmMain : MetroForm
 
 	private void lblTroubleLink_Click(object P_0, EventArgs P_1)
 	{
-		Process.Start("https://m.me/Konayuki.moe");
+		Process.Start(Server.Support);
 	}
 
 	private void btnMPC_Click(object P_0, EventArgs P_1)
@@ -5370,6 +5378,13 @@ public class frmMain : MetroForm
 		bool_6 = false;
 	}
 
+	// mpv's "container-fps" as a number, or 0 while mpv has no value. It can return null or an empty string,
+	// and the double.Parse calls that used it threw from a timer tick and from the seek bar, over and over.
+	private double PreviewFps()
+	{
+		return (double.TryParse(class6_0.method_11(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double fps) && fps > 0.0) ? fps : 0.0;
+	}
+
 	private void tbSeek_ValueChanged(object P_0, EventArgs P_1)
 	{
 		if (bool_6 && class6_0.TotalFrame != 0.0)
@@ -5377,9 +5392,13 @@ public class frmMain : MetroForm
 			Application.DoEvents();
 			if (Class5.FPSNum == "0" || Class5.FPSDen == "0" || cboVideoSmooth.SelectedIndex > 0)
 			{
-				double num = (double)tbSeek.Value / double.Parse(class6_0.method_11());
-				double currentPosition = Math.Floor(num * 1000.0) / 1000.0;
-				class6_0.CurrentPosition = currentPosition;
+				double previewFps = PreviewFps();
+				if (previewFps > 0.0)
+				{
+					double num = (double)tbSeek.Value / previewFps;
+					double currentPosition = Math.Floor(num * 1000.0) / 1000.0;
+					class6_0.CurrentPosition = currentPosition;
+				}
 			}
 			else
 			{

@@ -38,4 +38,10 @@ internal static class Server
 
     /// <summary>Base URL for the per-filter help pages.</summary>
     public const string Help = Host + "/KonayukiPlus/";
+
+    /// <summary>
+    /// Where users report problems. The original pointed at the developers' Facebook Messenger, which nobody
+    /// answers any more; this is the bug report form of the revival's repository (public, not under Host).
+    /// </summary>
+    public const string Support = "https://github.com/v6u1/KonayukiPlus/issues/new/choose";
 }

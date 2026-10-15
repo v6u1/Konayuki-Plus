@@ -79,7 +79,7 @@ public class frmConfigs : MetroForm
 	{
 		try
 		{
-			class4_0 = JsonConvert.DeserializeObject<Class4>(File.ReadAllText(Class48.smethod_37() + "\\configs.json"));
+			class4_0 = Class48.LoadConfig();
 		}
 		catch
 		{
@@ -97,7 +97,7 @@ public class frmConfigs : MetroForm
 	public static void smethod_0()
 	{
 		Class4 value = new Class4();
-		File.WriteAllText(Class48.smethod_37() + "\\configs.json", JsonConvert.SerializeObject(value, Formatting.Indented));
+		Class48.SaveConfig(value);
 	}
 
 	private void frmConfigs_FormClosing(object P_0, FormClosingEventArgs P_1)
@@ -113,7 +113,7 @@ public class frmConfigs : MetroForm
 			AfterCompletion = cboAfterCompletion.SelectedIndex,
 			Lang = class4_0.Lang
 		};
-		File.WriteAllText(Class48.smethod_37() + "\\configs.json", JsonConvert.SerializeObject(value, Formatting.Indented));
+		Class48.SaveConfig(value);
 	}
 
 	private void btnNotifySound_Click(object P_0, EventArgs P_1)

@@ -95,7 +95,7 @@ public class Notification : Form
 
 	public Notification(string P_0, string P_1, int P_2, Enum13 P_3, Class1.Enum5 P_4, Class1.Enum6 P_5, bool P_6 = false)
 	{
-		class4_0 = JsonConvert.DeserializeObject<Class4>(File.ReadAllText(Class48.smethod_37() + "\\configs.json"));
+		class4_0 = Class48.LoadConfig();
 		InitializeComponent();
 		try
 		{

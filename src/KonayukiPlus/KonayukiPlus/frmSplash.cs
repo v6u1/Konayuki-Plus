@@ -377,8 +377,16 @@ public class frmSplash : Form
 					}
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
+				// Any error during the update ends up here, not only network ones; keep the real reason in the log.
+				try
+				{
+					File.AppendAllText(Path.Combine(Class48.smethod_37(), "tmp", "synclog.log"), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " [ERROR] " + stringValue2 + ": " + ex.GetType().Name + ": " + ex.Message + "\r\n");
+				}
+				catch
+				{
+				}
 				boolValue2 = true;
 				method_3("Connecting... Can't connect to server?");
 			}

@@ -29,16 +29,36 @@ public static class Class12
 		}
 	}
 
+	// Downloads the configuration blob. The original made a single attempt, so one dropped or stale connection
+	// ended the app with "Can't connect to server?"; it now tries three times and logs why it failed
+	// (tmp\synclog.log; the message never contains the server URL).
 	public static string smethod_0(string P_0)
 	{
-		WebClient webClient = new WebClient();
-		try
+		for (int attempt = 1; attempt <= 3; attempt++)
 		{
-			webClient.Encoding = Encoding.UTF8;
-			return webClient.DownloadString(P_0);
-		}
-		catch
-		{
+			try
+			{
+				using (WebClient webClient = new WebClient())
+				{
+					webClient.Encoding = Encoding.UTF8;
+					return webClient.DownloadString(P_0);
+				}
+			}
+			catch (Exception ex)
+			{
+				try
+				{
+					Directory.CreateDirectory(Path.Combine(Class48.smethod_37(), "tmp"));
+					File.AppendAllText(Path.Combine(Class48.smethod_37(), "tmp", "synclog.log"), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " [ERROR] plugins.cfg, attempt " + attempt + ": " + ex.Message + "\r\n");
+				}
+				catch
+				{
+				}
+				if (attempt < 3)
+				{
+					System.Threading.Thread.Sleep(1000);
+				}
+			}
 		}
 		return bool.TrueString;
 	}

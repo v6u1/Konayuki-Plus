@@ -654,26 +654,88 @@ public static class Class48
 		return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Konayuki Container");
 	}
 
+	// Re-creates %ProgramData%\Konayuki Container as a link to the installation folder on every start.
+	// The original deleted whatever was there with "RD /S /Q" when a plain delete failed, which wipes a real
+	// folder (one restored from a backup, or left by a failed link) together with its contents. A link is
+	// still removed; a real folder is now renamed out of the way instead.
 	public static void smethod_38()
 	{
+		string container = smethod_37();
 		try
 		{
-			Directory.Delete(smethod_37());
+			DirectoryInfo directoryInfo = new DirectoryInfo(container);
+			if (directoryInfo.Exists)
+			{
+				if ((directoryInfo.Attributes & FileAttributes.ReparsePoint) != 0)
+				{
+					Directory.Delete(container);
+				}
+				else
+				{
+					Directory.Move(container, container + ".old-" + DateTime.Now.ToString("yyyyMMdd-HHmmss"));
+				}
+			}
 		}
 		catch
 		{
-			Process process = new Process();
-			process.StartInfo.FileName = "cmd.exe";
-			process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-			process.StartInfo.CreateNoWindow = true;
-			process.StartInfo.Arguments = "/c RD /S /Q \"" + smethod_37() + "\"";
-			process.Start();
-			process.WaitForExit();
 		}
-		if (!CreateSymbolicLink(smethod_37(), Application.StartupPath, 1))
+		if (!CreateSymbolicLink(container, Application.StartupPath, 1))
 		{
-			MessageBox.Show("Can't create container please contact https://m.me/Konayuki.moe", "MsgBox", MessageBoxButtons.OK, MessageBoxIcon.Hand);
+			MessageBox.Show("Can't create the data folder link:\r\n" + container + "\r\n\r\nPlease report this at " + Server.Support, "MsgBox", MessageBoxButtons.OK, MessageBoxIcon.Hand);
 			Environment.Exit(0);
+		}
+	}
+
+	// configs.json helpers, added by the revival. The original read the file in four places and wrote it in
+	// five with plain File.WriteAllText. A crash or power cut during a save could leave it empty or truncated;
+	// an empty file deserializes to null, which none of the readers expected, so the settings window,
+	// notifications, the language menu and the topmost toggle then crashed.
+	internal static Class4 LoadConfig()
+	{
+		string path = Path.Combine(smethod_37(), "configs.json");
+		try
+		{
+			Class4 class4 = Newtonsoft.Json.JsonConvert.DeserializeObject<Class4>(File.ReadAllText(path));
+			if (class4 != null)
+			{
+				return class4;
+			}
+		}
+		catch
+		{
+		}
+		Class4 defaults = new Class4();
+		try
+		{
+			SaveConfig(defaults);
+		}
+		catch
+		{
+		}
+		return defaults;
+	}
+
+	// Writes configs.json atomically: the new content goes to a file next to it, which is then swapped in.
+	internal static void SaveConfig(Class4 value)
+	{
+		string path = Path.Combine(smethod_37(), "configs.json");
+		string temp = path + ".tmp";
+		File.WriteAllText(temp, Newtonsoft.Json.JsonConvert.SerializeObject(value, Newtonsoft.Json.Formatting.Indented));
+		try
+		{
+			if (File.Exists(path))
+			{
+				File.Replace(temp, path, null);
+			}
+			else
+			{
+				File.Move(temp, path);
+			}
+		}
+		catch
+		{
+			File.Copy(temp, path, overwrite: true);
+			File.Delete(temp);
 		}
 	}
 

@@ -94,37 +94,41 @@ public class frmProcess : MetroForm
 		method_0();
 	}
 
-	private void btnTerminate_Click(object P_0, EventArgs P_1)
+	// Kills one process by the id shown in the list; a process that already exited is not an error.
+	private static void KillListed(string P_0)
 	{
 		try
 		{
-			foreach (ListViewItem item in lstProcess.Items)
-			{
-				if (item.Selected)
-				{
-					Process.GetProcessById(int.Parse(item.Text.Substring(0))).Kill();
-				}
-			}
+			Process.GetProcessById(int.Parse(P_0)).Kill();
 		}
 		catch
 		{
+		}
+	}
+
+	private void btnTerminate_Click(object P_0, EventArgs P_1)
+	{
+		// Each kill is tried on its own: one process that had already exited used to stop the rest.
+		foreach (ListViewItem item in lstProcess.Items)
+		{
+			if (item.Selected)
+			{
+				KillListed(item.Text);
+			}
 		}
 		Close();
 	}
 
 	private void btnTerminateAll_Click(object P_0, EventArgs P_1)
 	{
-		try
+		// The original refreshed the list after every kill while still indexing into it, so the list shifted
+		// and every other process was skipped. Take the ids first, then kill them all.
+		string[] ids = lstProcess.Items.Cast<ListViewItem>().Select((ListViewItem item) => item.Text).ToArray();
+		foreach (string id in ids)
 		{
-			for (int i = 0; i < lstProcess.Items.Count; i++)
-			{
-				Process.GetProcessById(int.Parse(lstProcess.Items[i].Text.Substring(0))).Kill();
-				method_0();
-			}
+			KillListed(id);
 		}
-		catch
-		{
-		}
+		method_0();
 		IsOK = true;
 		Close();
 	}
